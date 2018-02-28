@@ -1,10 +1,10 @@
 /* eslint-disable */
-
 const bodyParser = require('body-parser');
 const express = require('express');
 const User = require('./user');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
+const cors = require('cors');
 
 const STATUS_USER_ERROR = 422;
 const BCRYPT_COST = 11;
@@ -18,8 +18,14 @@ server.use(
   })
 );
 
+const corsOptions = {
+  "origin": "http://localhost:3000",
+  "credentials": true
+};
+server.use(cors(corsOptions));
+
 /* Sends the given err, a string or an object, to the client. Sets the status
-* code appropriately. */
+ * code appropriately. */
 const sendUserError = (err, res) => {
   res.status(STATUS_USER_ERROR);
   if (err && err.message) {
@@ -112,7 +118,7 @@ server.post('/users', (req, res) => {
   }
 });
 
-server.post('/log-in', handleLogin, (req, res) => {
+server.post('/login', handleLogin, (req, res) => {
   const { username, password } = req.body;
   const hash = req.hashedPassword;
 
@@ -129,6 +135,12 @@ server.post('/log-in', handleLogin, (req, res) => {
     }
   });
 });
+
+server.post('/logout', (req, res) => {
+  req.session.loggedIn = null;
+  req.session.username = null;
+  res.json({ success: 'You have been logged out.' });
+})
 
 server.get('/restricted/something', (req, res) => {
   res.json({
